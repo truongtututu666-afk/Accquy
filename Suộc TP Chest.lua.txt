@@ -1,0 +1,663 @@
+-- Satan Transform Script với UI tuyệt đẹp và Skills
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local Debris = game:GetService("Debris")
+local Lighting = game:GetService("Lighting")
+
+local Player = Players.LocalPlayer
+local Mouse = Player:GetMouse()
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+
+-- Variables
+local isTransformed = false
+local skills = {}
+local horns = {}
+local aura = nil
+local wings = nil
+
+-- Create Main UI
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "SatanTransformGUI"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = Player:WaitForChild("PlayerGui")
+
+-- Create Transform Button (Super Beautiful)
+local ButtonContainer = Instance.new("Frame")
+ButtonContainer.Size = UDim2.new(0, 150, 0, 150)
+ButtonContainer.Position = UDim2.new(0.5, -75, 0.9, -160)
+ButtonContainer.BackgroundTransparency = 1
+ButtonContainer.Parent = ScreenGui
+
+-- Outer Ring Animation
+local OuterRing = Instance.new("ImageLabel")
+OuterRing.Size = UDim2.new(1.3, 0, 1.3, 0)
+OuterRing.Position = UDim2.new(-0.15, 0, -0.15, 0)
+OuterRing.BackgroundTransparency = 1
+OuterRing.Image = "rbxasset://textures/ui/LuaApp/graphic/CircleButtonBackground.png"
+OuterRing.ImageColor3 = Color3.fromRGB(255, 0, 0)
+OuterRing.Parent = ButtonContainer
+
+-- Main Button
+local TransformButton = Instance.new("TextButton")
+TransformButton.Size = UDim2.new(1, 0, 1, 0)
+TransformButton.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+TransformButton.Text = ""
+TransformButton.Parent = ButtonContainer
+
+local ButtonGradient = Instance.new("UIGradient")
+ButtonGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 0, 0)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150, 0, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 0, 0))
+}
+ButtonGradient.Rotation = 45
+ButtonGradient.Parent = TransformButton
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0.5, 0)
+ButtonCorner.Parent = TransformButton
+
+local ButtonStroke = Instance.new("UIStroke")
+ButtonStroke.Color = Color3.fromRGB(255, 0, 0)
+ButtonStroke.Thickness = 3
+ButtonStroke.Transparency = 0.3
+ButtonStroke.Parent = TransformButton
+
+-- Button Icon
+local ButtonIcon = Instance.new("TextLabel")
+ButtonIcon.Size = UDim2.new(0.8, 0, 0.8, 0)
+ButtonIcon.Position = UDim2.new(0.1, 0, 0.1, 0)
+ButtonIcon.BackgroundTransparency = 1
+ButtonIcon.Text = "😈"
+ButtonIcon.TextScaled = true
+ButtonIcon.Parent = TransformButton
+
+-- Button Text
+local ButtonText = Instance.new("TextLabel")
+ButtonText.Size = UDim2.new(1.5, 0, 0.3, 0)
+ButtonText.Position = UDim2.new(-0.25, 0, 1.1, 0)
+ButtonText.BackgroundTransparency = 1
+ButtonText.Text = "SATAN MODE"
+ButtonText.TextColor3 = Color3.fromRGB(255, 255, 255)
+ButtonText.TextScaled = true
+ButtonText.Font = Enum.Font.SourceSansBold
+ButtonText.Parent = ButtonContainer
+
+-- Skills UI (Hidden initially)
+local SkillsFrame = Instance.new("Frame")
+SkillsFrame.Size = UDim2.new(0, 400, 0, 100)
+SkillsFrame.Position = UDim2.new(0.5, -200, 0.8, -110)
+SkillsFrame.BackgroundTransparency = 1
+SkillsFrame.Visible = false
+SkillsFrame.Parent = ScreenGui
+
+-- Create Skill Buttons
+local skillsData = {
+    {name = "Hellfire", icon = "🔥", key = "Q", color = Color3.fromRGB(255, 100, 0)},
+    {name = "Shadow Teleport", icon = "💀", key = "E", color = Color3.fromRGB(100, 0, 150)},
+    {name = "Demon Wings", icon = "🦇", key = "R", color = Color3.fromRGB(50, 0, 100)},
+    {name = "Soul Steal", icon = "👻", key = "F", color = Color3.fromRGB(200, 0, 255)}
+}
+
+for i, skillData in ipairs(skillsData) do
+    local SkillButton = Instance.new("Frame")
+    SkillButton.Size = UDim2.new(0, 80, 0, 80)
+    SkillButton.Position = UDim2.new(0, (i-1) * 100, 0, 0)
+    SkillButton.BackgroundColor3 = Color3.fromRGB(30, 30, 35)
+    SkillButton.Parent = SkillsFrame
+    
+    local SkillGradient = Instance.new("UIGradient")
+    SkillGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, skillData.color),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 25))
+    }
+    SkillGradient.Rotation = 90
+    SkillGradient.Parent = SkillButton
+    
+    local SkillCorner = Instance.new("UICorner")
+    SkillCorner.CornerRadius = UDim.new(0, 15)
+    SkillCorner.Parent = SkillButton
+    
+    local SkillStroke = Instance.new("UIStroke")
+    SkillStroke.Color = skillData.color
+    SkillStroke.Thickness = 2
+    SkillStroke.Transparency = 0.5
+    SkillStroke.Parent = SkillButton
+    
+    local SkillIcon = Instance.new("TextLabel")
+    SkillIcon.Size = UDim2.new(0.7, 0, 0.5, 0)
+    SkillIcon.Position = UDim2.new(0.15, 0, 0.1, 0)
+    SkillIcon.BackgroundTransparency = 1
+    SkillIcon.Text = skillData.icon
+    SkillIcon.TextScaled = true
+    SkillIcon.Parent = SkillButton
+    
+    local SkillKey = Instance.new("TextLabel")
+    SkillKey.Size = UDim2.new(1, 0, 0.3, 0)
+    SkillKey.Position = UDim2.new(0, 0, 0.6, 0)
+    SkillKey.BackgroundTransparency = 1
+    SkillKey.Text = skillData.key
+    SkillKey.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SkillKey.TextScaled = true
+    SkillKey.Font = Enum.Font.SourceSansBold
+    SkillKey.Parent = SkillButton
+    
+    skills[skillData.key] = {button = SkillButton, data = skillData}
+end
+
+-- Animation Functions
+local function animateButton()
+    spawn(function()
+        while true do
+            local tween = TweenService:Create(
+                OuterRing,
+                TweenInfo.new(2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut),
+                {Rotation = 360}
+            )
+            tween:Play()
+            tween.Completed:Wait()
+            OuterRing.Rotation = 0
+        end
+    end)
+end
+
+-- Transform Functions
+local function createHorns()
+    -- Left Horn
+    local leftHorn = Instance.new("Part")
+    leftHorn.Name = "LeftHorn"
+    leftHorn.Size = Vector3.new(0.3, 1.5, 0.3)
+    leftHorn.Material = Enum.Material.Neon
+    leftHorn.BrickColor = BrickColor.new("Really red")
+    leftHorn.CanCollide = false
+    leftHorn.Parent = Character
+    
+    local leftHornMesh = Instance.new("SpecialMesh")
+    leftHornMesh.MeshType = Enum.MeshType.FileMesh
+    leftHornMesh.MeshId = "rbxasset://fonts/torso.mesh"
+    leftHornMesh.Scale = Vector3.new(0.2, 1, 0.2)
+    leftHornMesh.Parent = leftHorn
+    
+    local leftWeld = Instance.new("Weld")
+    leftWeld.Part0 = Character.Head
+    leftWeld.Part1 = leftHorn
+    leftWeld.C0 = CFrame.new(-0.5, 0.7, 0) * CFrame.Angles(math.rad(-20), 0, math.rad(-15))
+    leftWeld.Parent = leftHorn
+    
+    -- Right Horn
+    local rightHorn = leftHorn:Clone()
+    rightHorn.Name = "RightHorn"
+    rightHorn.Parent = Character
+    rightHorn.Weld.C0 = CFrame.new(0.5, 0.7, 0) * CFrame.Angles(math.rad(-20), 0, math.rad(15))
+    
+    table.insert(horns, leftHorn)
+    table.insert(horns, rightHorn)
+end
+
+local function createAura()
+    aura = Instance.new("Part")
+    aura.Name = "DemonAura"
+    aura.Size = Vector3.new(0.1, 0.1, 0.1)
+    aura.Transparency = 1
+    aura.CanCollide = false
+    aura.Parent = Character
+    
+    local auraWeld = Instance.new("Weld")
+    auraWeld.Part0 = RootPart
+    auraWeld.Part1 = aura
+    auraWeld.Parent = aura
+    
+    local fire = Instance.new("Fire")
+    fire.Size = 10
+    fire.Heat = 0
+    fire.Color = Color3.fromRGB(255, 0, 0)
+    fire.SecondaryColor = Color3.fromRGB(100, 0, 0)
+    fire.Parent = aura
+    
+    local pointLight = Instance.new("PointLight")
+    pointLight.Brightness = 2
+    pointLight.Color = Color3.fromRGB(255, 0, 0)
+    pointLight.Range = 15
+    pointLight.Parent = aura
+end
+
+local function transformToSatan()
+    -- Change character appearance
+    for _, part in pairs(Character:GetDescendants()) do
+        if part:IsA("BasePart") and part.Parent:IsA("Model") then
+            part.BrickColor = BrickColor.new("Really red")
+            if part.Name == "Head" then
+                part.BrickColor = BrickColor.new("Maroon")
+            end
+        end
+    end
+    
+    -- Add horns
+    createHorns()
+    
+    -- Add aura
+    createAura()
+    
+    -- Change face
+    local face = Character.Head:FindFirstChild("face")
+    if face then
+        face.Texture = "rbxasset://textures/face.png"
+        face.Color3 = Color3.fromRGB(255, 0, 0)
+    end
+    
+    -- Modify humanoid properties
+    Humanoid.WalkSpeed = 25
+    Humanoid.JumpPower = 75
+    
+    -- Show skills
+    SkillsFrame.Visible = true
+    
+    -- Dark atmosphere
+    local ColorCorrection = Instance.new("ColorCorrectionEffect")
+    ColorCorrection.Name = "SatanEffect"
+    ColorCorrection.TintColor = Color3.fromRGB(255, 200, 200)
+    ColorCorrection.Saturation = -0.2
+    ColorCorrection.Parent = Lighting
+end
+
+local function revertTransform()
+    -- Reset character appearance
+    for _, part in pairs(Character:GetDescendants()) do
+        if part:IsA("BasePart") and part.Parent:IsA("Model") then
+            part.BrickColor = BrickColor.new("Light orange")
+            if part.Name == "Head" then
+                part.BrickColor = BrickColor.new("Light orange")
+            end
+        end
+    end
+    
+    -- Remove horns
+    for _, horn in pairs(horns) do
+        horn:Destroy()
+    end
+    horns = {}
+    
+    -- Remove aura
+    if aura then
+        aura:Destroy()
+        aura = nil
+    end
+    
+    -- Remove wings
+    if wings then
+        wings:Destroy()
+        wings = nil
+    end
+    
+    -- Reset face
+    local face = Character.Head:FindFirstChild("face")
+    if face then
+        face.Texture = "rbxasset://textures/face.png"
+        face.Color3 = Color3.fromRGB(255, 255, 255)
+    end
+    
+    -- Reset humanoid properties
+    Humanoid.WalkSpeed = 16
+    Humanoid.JumpPower = 50
+    
+    -- Hide skills
+    SkillsFrame.Visible = false
+    
+    -- Remove atmosphere effect
+    local effect = Lighting:FindFirstChild("SatanEffect")
+    if effect then
+        effect:Destroy()
+    end
+end
+
+-- Skill Functions
+local function castHellfire()
+    local fireball = Instance.new("Part")
+    fireball.Name = "Hellfire"
+    fireball.Size = Vector3.new(4, 4, 4)
+    fireball.Shape = Enum.PartType.Ball
+    fireball.Material = Enum.Material.Neon
+    fireball.BrickColor = BrickColor.new("Really red")
+    fireball.TopSurface = Enum.SurfaceType.Smooth
+    fireball.BottomSurface = Enum.SurfaceType.Smooth
+    fireball.CanCollide = false
+    fireball.CFrame = RootPart.CFrame + RootPart.CFrame.lookVector * 5
+    fireball.Parent = workspace
+    
+    local fire = Instance.new("Fire")
+    fire.Size = 15
+    fire.Heat = 25
+    fire.Parent = fireball
+    
+    local bodyVelocity = Instance.new("BodyVelocity")
+    bodyVelocity.Velocity = Mouse.Hit.lookVector * 100
+    bodyVelocity.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bodyVelocity.Parent = fireball
+    
+    fireball.Touched:Connect(function(hit)
+        if hit.Parent ~= Character and hit.Parent:FindFirstChild("Humanoid") then
+            hit.Parent.Humanoid:TakeDamage(30)
+            local explosion = Instance.new("Explosion")
+            explosion.Position = fireball.Position
+            explosion.BlastRadius = 20
+            explosion.BlastPressure = 100000
+            explosion.Parent = workspace
+            fireball:Destroy()
+        end
+    end)
+    
+    Debris:AddItem(fireball, 5)
+end
+
+local function shadowTeleport()
+    local targetPos = Mouse.Hit.Position + Vector3.new(0, 3, 0)
+    
+    -- Create shadow effect at start
+    local shadow1 = Instance.new("Part")
+    shadow1.Size = Vector3.new(5, 0.1, 5)
+    shadow1.Position = RootPart.Position - Vector3.new(0, 3, 0)
+    shadow1.BrickColor = BrickColor.new("Really black")
+    shadow1.Material = Enum.Material.Neon
+    shadow1.Transparency = 0.5
+    shadow1.Anchored = true
+    shadow1.CanCollide = false
+    shadow1.Parent = workspace
+    
+    local shadowTween = TweenService:Create(
+        shadow1,
+        TweenInfo.new(0.5),
+        {Size = Vector3.new(10, 0.1, 10), Transparency = 1}
+    )
+    shadowTween:Play()
+    Debris:AddItem(shadow1, 0.5)
+    
+    -- Teleport
+    RootPart.CFrame = CFrame.new(targetPos)
+    
+    -- Create shadow effect at end
+    local shadow2 = shadow1:Clone()
+    shadow2.Position = targetPos - Vector3.new(0, 3, 0)
+    shadow2.Size = Vector3.new(10, 0.1, 10)
+    shadow2.Transparency = 1
+    shadow2.Parent = workspace
+    
+    local shadowTween2 = TweenService:Create(
+        shadow2,
+        TweenInfo.new(0.5),
+        {Size = Vector3.new(5, 0.1, 5), Transparency = 0.5}
+    )
+    shadowTween2:Play()
+    Debris:AddItem(shadow2, 0.5)
+end
+
+local function toggleWings()
+    if wings then
+        wings:Destroy()
+        wings = nil
+        Humanoid.WalkSpeed = 25
+    else
+        wings = Instance.new("Part")
+        wings.Name = "DemonWings"
+        wings.Size = Vector3.new(0.1, 0.1, 0.1)
+        wings.Transparency = 1
+        wings.CanCollide = false
+        wings.Parent = Character
+        
+        local wingsWeld = Instance.new("Weld")
+        wingsWeld.Part0 = RootPart
+        wingsWeld.Part1 = wings
+        wingsWeld.C0 = CFrame.new(0, 0, 1)
+        wingsWeld.Parent = wings
+        
+        -- Create wing effect
+        local leftWing = Instance.new("Part")
+        leftWing.Size = Vector3.new(4, 6, 0.5)
+        leftWing.BrickColor = BrickColor.new("Really black")
+        leftWing.Material = Enum.Material.Neon
+        leftWing.Transparency = 0.3
+        leftWing.CanCollide = false
+        leftWing.Parent = wings
+        
+        local leftWingWeld = Instance.new("Weld")
+        leftWingWeld.Part0 = wings
+        leftWingWeld.Part1 = leftWing
+        leftWingWeld.C0 = CFrame.new(-2, 0, 0) * CFrame.Angles(0, math.rad(-30), 0)
+        leftWingWeld.Parent = leftWing
+        
+        local rightWing = leftWing:Clone()
+        rightWing.Parent = wings
+        rightWing.Weld.C0 = CFrame.new(2, 0, 0) * CFrame.Angles(0, math.rad(30), 0)
+        
+        Humanoid.WalkSpeed = 40
+        
+        -- Wing flap animation
+        spawn(function()
+            while wings do
+                local tween1 = TweenService:Create(
+                    leftWingWeld,
+                    TweenInfo.new(0.5, Enum.EasingStyle.Sine),
+                    {C0 = CFrame.new(-2, 1, 0) * CFrame.Angles(0, math.rad(-45), 0)}
+                )
+                local tween2 = TweenService:Create(
+                    rightWing.Weld,
+                    TweenInfo.new(0.5, Enum.EasingStyle.Sine),
+                    {C0 = CFrame.new(2, 1, 0) * CFrame.Angles(0, math.rad(45), 0)}
+                )
+                tween1:Play()
+                tween2:Play()
+                wait(0.5)
+                
+                local tween3 = TweenService:Create(
+                    leftWingWeld,
+                    TweenInfo.new(0.5, Enum.EasingStyle.Sine),
+                    {C0 = CFrame.new(-2, -1, 0) * CFrame.Angles(0, math.rad(-15), 0)}
+                )
+                local tween4 = TweenService:Create(
+                    rightWing.Weld,
+                    TweenInfo.new(0.5, Enum.EasingStyle.Sine),
+                    {C0 = CFrame.new(2, -1, 0) * CFrame.Angles(0, math.rad(15), 0)}
+                )
+                tween3:Play()
+                tween4:Play()
+                wait(0.5)
+            end
+        end)
+    end
+end
+
+local function soulSteal()
+    local radius = 30
+    local position = RootPart.Position
+    
+    -- Create soul steal effect
+    local sphere = Instance.new("Part")
+    sphere.Name = "SoulStealSphere"
+    sphere.Shape = Enum.PartType.Ball
+    sphere.Size = Vector3.new(1, 1, 1)
+    sphere.Position = position
+    sphere.BrickColor = BrickColor.new("Royal purple")
+    sphere.Material = Enum.Material.ForceField
+    sphere.Transparency = 0.7
+    sphere.Anchored = true
+    sphere.CanCollide = false
+    sphere.Parent = workspace
+    
+    local sphereTween = TweenService:Create(
+        sphere,
+        TweenInfo.new(1, Enum.EasingStyle.Quad),
+        {Size = Vector3.new(radius*2, radius*2, radius*2), Transparency = 1}
+    )
+    sphereTween:Play()
+    Debris:AddItem(sphere, 1)
+    
+    -- Steal health from nearby players
+    for _, target in pairs(workspace:GetDescendants()) do
+        if target:FindFirstChild("Humanoid") and target ~= Character then
+            local targetHumanoid = target.Humanoid
+            local targetRoot = target:FindFirstChild("HumanoidRootPart")
+            if targetRoot then
+                local distance = (targetRoot.Position - position).Magnitude
+                if distance <= radius then
+                    local damage = 20
+                    targetHumanoid:TakeDamage(damage)
+                    Humanoid.Health = math.min(Humanoid.MaxHealth, Humanoid.Health + damage/2)
+                    
+                    -- Create soul effect
+                    local soul = Instance.new("Part")
+                    soul.Size = Vector3.new(1, 1, 1)
+                    soul.Shape = Enum.PartType.Ball
+                    soul.BrickColor = BrickColor.new("Royal purple")
+                    soul.Material = Enum.Material.Neon
+                    soul.Transparency = 0.5
+                    soul.Anchored = true
+                    soul.CanCollide = false
+                    soul.Position = targetRoot.Position
+                    soul.Parent = workspace
+                    
+                    local soulTween = TweenService:Create(
+                        soul,
+                        TweenInfo.new(0.5, Enum.EasingStyle.Linear),
+                        {Position = RootPart.Position, Size = Vector3.new(0.1, 0.1, 0.1), Transparency = 1}
+                    )
+                    soulTween:Play()
+                    Debris:AddItem(soul, 0.5)
+                end
+            end
+        end
+    end
+end
+
+-- Input Handling
+local function onKeyPress(key)
+    if not isTransformed then return end
+    
+    key = key:upper()
+    
+    if key == "Q" then
+        castHellfire()
+    elseif key == "E" then
+        shadowTeleport()
+    elseif key == "R" then
+        toggleWings()
+    elseif key == "F" then
+        soulSteal()
+    end
+end
+
+-- Mobile Support
+for key, skill in pairs(skills) do
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, 0, 1, 0)
+    button.BackgroundTransparency = 1
+    button.Parent = skill.button
+    
+    button.MouseButton1Click:Connect(function()
+        onKeyPress(key)
+    end)
+end
+
+-- PC Support
+Mouse.KeyDown:Connect(function(key)
+    onKeyPress(key)
+end)
+
+-- Transform Button Click
+TransformButton.MouseButton1Click:Connect(function()
+    isTransformed = not isTransformed
+    
+    if isTransformed then
+        -- Transform animation
+        local transformTween = TweenService:Create(
+            ButtonGradient,
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad),
+            {Offset = Vector2.new(0, -0.5)}
+        )
+        transformTween:Play()
+        
+        ButtonIcon.Text = "👹"
+        ButtonText.Text = "HUMAN MODE"
+        ButtonStroke.Color = Color3.fromRGB(255, 100, 0)
+        
+        transformToSatan()
+        
+        -- Screen flash effect
+        local flash = Instance.new("Frame")
+        flash.Size = UDim2.new(2, 0, 2, 0)
+        flash.Position = UDim2.new(-0.5, 0, -0.5, 0)
+        flash.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+        flash.Parent = ScreenGui
+        
+        local flashTween = TweenService:Create(
+            flash,
+            TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+            {BackgroundTransparency = 1}
+        )
+        flashTween:Play()
+        flashTween.Completed:Connect(function()
+            flash:Destroy()
+        end)
+    else
+        -- Revert animation
+        local revertTween = TweenService:Create(
+            ButtonGradient,
+            TweenInfo.new(0.5, Enum.EasingStyle.Quad),
+            {Offset = Vector2.new(0, 0)}
+        )
+        revertTween:Play()
+        
+        ButtonIcon.Text = "😈"
+        ButtonText.Text = "SATAN MODE"
+        ButtonStroke.clor = Color3.fromRGB(255, 0, 0)
+        
+        revertTransform()
+    end
+end)
+-- Button hover effect
+TransformButton.MouseEnter:Connect(function()
+    local hoverTween = TweenService:Create(
+        TransformButton,
+        TweenInfo.new(0.2, Enum.EasingStyle.Quad),
+        {Size = UDim2.new(1.1, 0, 1.1, 0), Position = UDim2.new(-0.05, 0, -0.05, 0)}
+    )
+    hoverTween:Play()
+end)
+
+TransformButton.MouseLeave:Connect(function()
+    local hoverTween = TweenService:Create(
+        TransformButton,
+        TweenInfo.new(0.2, Enum.EasingStyle.Quad),
+        {Size = UDim2.new(1, 0, 1, 0), Position = UDim2.new(0, 0, 0, 0)}
+    )
+    hoverTween:Play()
+end)
+
+-- Respawn handler
+Player.CharacterAdded:Connect(function(newChar)
+    Character = newChar
+    Humanoid = newChar:WaitForChild("Humanoid")
+    RootPart = newChar:WaitForChild("HumanoidRootPart")
+    isTransformed = false
+    ButtonIcon.Text = "😈"
+    ButtonText.Text = "SATAN MODE"
+    SkillsFrame.Visible = false
+end)
+
+-- Start animations
+animateButton()
+
+-- Opening animation
+ButtonContainer.Size = UDim2.new(0, 0, 0, 0)
+local openTween = TweenService:Create(
+    ButtonContainer,
+    TweenInfo.new(0.8, Enum.EasingStyle.Back),
+    {Size = UDim2.new(0, 150, 0, 150)}
+)
+openTween:Play()
+
+print("✅ Satan Transform Loaded!")
+print("📱 Mobile & PC Support Enabled!")
+print("🔥 Skills: Q-Hellfire, E-Teleport, R-Wings, F-Soul Steal")
